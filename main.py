@@ -4,43 +4,52 @@
 
 #--------------------------------------------------------------------------------------------
 
+
 #imports
 import urllib.request
 import json
 from datetime import datetime
 
+
 #--------------------------------------------------------------------------------------------
+
 
 # { User Input for Github Username }
 
 Github_Username = input("Enter Github username: ")
 
+
 #--------------------------------------------------------------------------------------------
+
 
 # { Github API Requests & Response }
 
-Github_API_URL = f"https://api.github.com/users/{Github_Username}/events"
+Github_User_Activity_API = f"https://api.github.com/users/{Github_Username}/events"
 
-Response = urllib.request.urlopen(Github_API_URL)
+Github_User_Activity_Response = urllib.request.urlopen(Github_User_Activity_API)
 
-Github_User_Activity_Data = json.loads(Response.read())
+Github_User_Activity_Data = json.loads(Github_User_Activity_Response.read())
 
 #print(Github_User_Activity_Data)
-#print(Github_User_Activity_Data[1]['payload'])
-
-#for event in Github_User_Activity_Data:
-#   print(event['type'])
 
 
 #--------------------------------------------------------------------------------------------
 
+
 # { Formatted CLI Response }
 
-for event in Github_User_Activity_Data[0:2]:
+for event in Github_User_Activity_Data[0:4]:
     if event['type'] == 'PushEvent':
+
+        Github_Compare_API = f"https://api.github.com/repos/{event['repo']['name']}/compare/{event['payload']['before']}...{event['payload']['head']}"
+        Github_Compare_Response = urllib.request.urlopen(Github_Compare_API)
+        Github_Compare_Data = json.loads(Github_Compare_Response.read())
+
+        Github_Compare_Commits = Github_Compare_Data['total_commits']
+
         print(
             f"{event['actor']['display_login']} "
-            f"pushed to {event['repo']['name']} "
+            f"pushed {Github_Compare_Commits} commits to {event['repo']['name']} "
             f"on {datetime.strptime(event['created_at'],'%Y-%m-%dT%H:%M:%SZ',).strftime('%B %d, %Y %H:%M:%S')}"
 )
 
@@ -51,6 +60,9 @@ for event in Github_User_Activity_Data[0:2]:
             f"in {event['repo']['name']} "
             f"on {datetime.strptime(event['created_at'],'%Y-%m-%dT%H:%M:%SZ',).strftime('%B %d, %Y %H:%M:%S')}"
 )
+
+
+
 
 #--------------------------------------------------------------------------------------------
 
