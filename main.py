@@ -4,39 +4,53 @@
 
 #--------------------------------------------------------------------------------------------
 
-
 #imports
 import urllib.request
 import json
 from datetime import datetime
 
-
 #--------------------------------------------------------------------------------------------
-
 
 # { User Input for Github Username }
 
 program_running = True
 
 while program_running:
-    Github_Username = input("Enter Github username: ")
+    Github_Username = input("""
+Enter Github Username : """)
 
-# { Github API Requests & Response }
+#--------------------------------------------------------------------------------------------
+
+# { Github API Request }
 
     Github_User_Activity_API = f"https://api.github.com/users/{Github_Username}/events"
+
+#--------------------------------------------------------------------------------------------
+
+# { Github API Error Handling }
 
     try:
         Github_User_Activity_Response = urllib.request.urlopen(Github_User_Activity_API)
 
-    except urllib.error.HTTPError:
-        print(f"Error: User \"{Github_Username}\" not found. Please try again.")
-        continue
+    except urllib.error.HTTPError as error:
+
+        if error.code == 404:
+            print(f"Error: User \"{Github_Username}\" not found. Please try again.")
+            continue
+
+        elif error.code >= 500:
+            print(f"Error: Server error. Please try again later.")
+            break
+
+        else:
+            print(f"Error: {error.code}. Please try again.")
+            break
+
+#--------------------------------------------------------------------------------------------
+
+# { Formatted CLI Responses }
 
     Github_User_Activity_Data = json.loads(Github_User_Activity_Response.read())
-
-    #print(Github_User_Activity_Data)
-
-# { Formatted CLI Response }
 
     for event in Github_User_Activity_Data:
         if event['type'] == 'PushEvent':
